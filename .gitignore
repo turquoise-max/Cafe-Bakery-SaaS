@@ -15,6 +15,9 @@
 .next/
 out/
 
+# dependencies
+node_modules/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -420,4 +423,3 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
->>>>>>> cd5c33f9bfc028652bfd83095edc576f0f2b3369
