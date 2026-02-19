@@ -9,8 +9,11 @@
 *.user
 *.userosscache
 *.sln.docstates
-*.next
 *.env
+
+# Next.js build output
+.next/
+out/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
