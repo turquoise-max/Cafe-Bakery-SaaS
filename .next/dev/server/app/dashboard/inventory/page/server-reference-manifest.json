@@ -1,0 +1,170 @@
+{
+  "node": {
+    "00242ed99168f557f2d608515fd4bc4d8d5a963d36": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getInventory",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getInventory",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "009f2ebd9f5e18aad71d29da313f09fed9ae95f989": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSuppliers",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getSuppliers",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "00bb8966836fbbee06790a23414d97dde961210d3d": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getInventoryDashboardData",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getInventoryDashboardData",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "600976a9b4d8df6da1d5db027a73855bb18c382110": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "processInbound",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "processInbound",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "7875fdec04f22c52a785766e014bee004ad149675d": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updatePhysicalCount",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "updatePhysicalCount",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "001aea836daf26be9195c23c5625652d6dbba4322f": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getItems",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getItems",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "402f3cfe50d32bb556d90c95dc56e19679ab92f2c2": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "deleteItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "40e564b33b2354f68726dd75c1c6eb83c39fdb0f17": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "createItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "004579005769e38fabb568dcfde8edc6bf2ce8583b": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSaleItems",
+          "filename": "src/app/dashboard/inventory/sales-actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "getSaleItems",
+      "filename": "src/app/dashboard/inventory/sales-actions.ts"
+    },
+    "60007e8c3887fc2cf8c927f297d6e6d8c61297d8c0": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "recordSale",
+          "filename": "src/app/dashboard/inventory/sales-actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "recordSale",
+      "filename": "src/app/dashboard/inventory/sales-actions.ts"
+    },
+    "0097669927c60a7edeecc70492b7110827b5049dc3": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/inventory/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/inventory/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/dashboard/items/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/dashboard/inventory/sales-actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/app/dashboard/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserStore",
+          "filename": "src/app/dashboard/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "getUserStore",
+      "filename": "src/app/dashboard/actions.ts"
+    }
+  },
+  "edge": {}
+}

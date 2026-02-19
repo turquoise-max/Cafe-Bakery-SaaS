@@ -1,0 +1,50 @@
+{
+  "node": {
+    "0067871440310bd5f6dfcc08c319de2d658e6f355b": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/recipes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/recipes/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getRecipes",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "getRecipes",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    },
+    "402d0609eb37447a75537aeca8f2fe0f2a3b08c2ff": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/recipes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/recipes/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "calculateRecipeCost",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "calculateRecipeCost",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    },
+    "40e29492683456c20143c4d0a53e8d770bacec6584": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/recipes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/dashboard/recipes/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createRecipe",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "createRecipe",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    }
+  },
+  "edge": {}
+}

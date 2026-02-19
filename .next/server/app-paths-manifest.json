@@ -1,0 +1,21 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/auth/callback/route": "app/auth/callback/route.js",
+  "/auth/signout/route": "app/auth/signout/route.js",
+  "/auth/signup/page": "app/auth/signup/page.js",
+  "/dashboard/inventory/page": "app/dashboard/inventory/page.js",
+  "/dashboard/items/page": "app/dashboard/items/page.js",
+  "/dashboard/mypage/page": "app/dashboard/mypage/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/recipes/[id]/page": "app/dashboard/recipes/[id]/page.js",
+  "/dashboard/recipes/new/page": "app/dashboard/recipes/new/page.js",
+  "/dashboard/recipes/page": "app/dashboard/recipes/page.js",
+  "/dashboard/sales/page": "app/dashboard/sales/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/error/page": "app/error/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/page": "app/page.js"
+}

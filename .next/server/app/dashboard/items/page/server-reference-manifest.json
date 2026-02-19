@@ -1,0 +1,50 @@
+{
+  "node": {
+    "0032a9292fd658e87efa1a3bdfe53febeb39ebd0fe": {
+      "workers": {
+        "app/dashboard/items/page": {
+          "moduleId": 64852,
+          "async": false,
+          "exportedName": "getItems",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/items/page": "rsc"
+      },
+      "exportedName": "getItems",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "405587be46d836851ba73f18c1a41bdd1627263589": {
+      "workers": {
+        "app/dashboard/items/page": {
+          "moduleId": 64852,
+          "async": false,
+          "exportedName": "deleteItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/items/page": "rsc"
+      },
+      "exportedName": "deleteItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "40757eb82f73ab6c0b123ae36dd618a65b81e4c38f": {
+      "workers": {
+        "app/dashboard/items/page": {
+          "moduleId": 64852,
+          "async": false,
+          "exportedName": "createItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/items/page": "action-browser"
+      },
+      "exportedName": "createItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,170 @@
+{
+  "node": {
+    "001c35e7317c61ec437b4d81b13f1a868ebe2606f5": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getSuppliers",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getSuppliers",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "00511953ceafb4bb42f14e05bd2b1c32af9cc8b2db": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getInventory",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getInventory",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "00e2c7247173f1b84bf0451277fd22869be7f7602d": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getInventoryDashboardData",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getInventoryDashboardData",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "60303a55485326f00bce0e83e0ad243a82e646c192": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "processInbound",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "processInbound",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "785de28928d98ff96a0fe1b93fa37d1c029aed68fa": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "updatePhysicalCount",
+          "filename": "src/app/dashboard/inventory/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "updatePhysicalCount",
+      "filename": "src/app/dashboard/inventory/actions.ts"
+    },
+    "0032a9292fd658e87efa1a3bdfe53febeb39ebd0fe": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getItems",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "getItems",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "405587be46d836851ba73f18c1a41bdd1627263589": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "deleteItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "deleteItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "40757eb82f73ab6c0b123ae36dd618a65b81e4c38f": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "createItem",
+          "filename": "src/app/dashboard/items/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "rsc"
+      },
+      "exportedName": "createItem",
+      "filename": "src/app/dashboard/items/actions.ts"
+    },
+    "00d5bcbf9aa6f4922828f683c032d1a04c834a1d2c": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getSaleItems",
+          "filename": "src/app/dashboard/inventory/sales-actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "getSaleItems",
+      "filename": "src/app/dashboard/inventory/sales-actions.ts"
+    },
+    "609ed4e16310a2dcf71382951bae8adf04e92d8fe6": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "recordSale",
+          "filename": "src/app/dashboard/inventory/sales-actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "recordSale",
+      "filename": "src/app/dashboard/inventory/sales-actions.ts"
+    },
+    "0085bff464ce6ca2bc5a4b68c455817bc775cf4446": {
+      "workers": {
+        "app/dashboard/inventory/page": {
+          "moduleId": 1300,
+          "async": false,
+          "exportedName": "getUserStore",
+          "filename": "src/app/dashboard/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/inventory/page": "action-browser"
+      },
+      "exportedName": "getUserStore",
+      "filename": "src/app/dashboard/actions.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,50 @@
+{
+  "node": {
+    "005e74f9cabeaa4c50f6d31fcc0d11a9eb8a2554e9": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": 49604,
+          "async": false,
+          "exportedName": "getRecipes",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "getRecipes",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    },
+    "4057c0cbc5ca48737df82f1073933b664183b4c1e9": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": 49604,
+          "async": false,
+          "exportedName": "createRecipe",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "createRecipe",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    },
+    "40db8656ca4dd856b0cf87c27963b45d24b1859875": {
+      "workers": {
+        "app/dashboard/recipes/page": {
+          "moduleId": 49604,
+          "async": false,
+          "exportedName": "calculateRecipeCost",
+          "filename": "src/app/dashboard/recipes/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/recipes/page": "rsc"
+      },
+      "exportedName": "calculateRecipeCost",
+      "filename": "src/app/dashboard/recipes/actions.ts"
+    }
+  },
+  "edge": {}
+}

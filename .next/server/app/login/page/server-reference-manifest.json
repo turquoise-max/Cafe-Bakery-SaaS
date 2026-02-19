@@ -1,0 +1,50 @@
+{
+  "node": {
+    "009e7370fedf21eb5097c8a40212947f00bb37a921": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 40246,
+          "async": false,
+          "exportedName": "loginWithGoogle",
+          "filename": "src/app/login/actions.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "rsc"
+      },
+      "exportedName": "loginWithGoogle",
+      "filename": "src/app/login/actions.ts"
+    },
+    "401471be2bdd8e28154e1d202261a3556d0e396ea1": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 40246,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "src/app/login/actions.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "rsc"
+      },
+      "exportedName": "signup",
+      "filename": "src/app/login/actions.ts"
+    },
+    "4056ea8cf41a98e88f805b37993690d5b38321817b": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 40246,
+          "async": false,
+          "exportedName": "login",
+          "filename": "src/app/login/actions.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "rsc"
+      },
+      "exportedName": "login",
+      "filename": "src/app/login/actions.ts"
+    }
+  },
+  "edge": {}
+}

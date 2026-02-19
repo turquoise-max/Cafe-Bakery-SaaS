@@ -1,0 +1,20 @@
+{
+  "node": {
+    "6062b3d125aa7f2f875e79428dde19058ffa5d33c7": {
+      "workers": {
+        "app/onboarding/page": {
+          "moduleId": 84373,
+          "async": false,
+          "exportedName": "createOrganizationAndStore",
+          "filename": "src/app/onboarding/actions.ts"
+        }
+      },
+      "layer": {
+        "app/onboarding/page": "action-browser"
+      },
+      "exportedName": "createOrganizationAndStore",
+      "filename": "src/app/onboarding/actions.ts"
+    }
+  },
+  "edge": {}
+}

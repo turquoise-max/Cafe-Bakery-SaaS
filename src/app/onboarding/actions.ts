@@ -30,7 +30,21 @@ export async function createOrganizationAndStore(prevState: State, formData: For
   const orgName = formData.get('orgName') as string
   const storeName = formData.get('storeName') as string
   const storeType = formData.get('storeType') as string
-  const includeSampleData = formData.get('includeSampleData') === 'on'
+  const includeSampleData = formData.get('includeSampleData') === 'true'
+  
+  // Parse JSON fields
+  const additionalStoresStr = formData.get('additionalStores') as string
+  const invitationsStr = formData.get('invitations') as string
+  
+  let additionalStores: { name: string }[] = []
+  let invitations: { email: string; role: string }[] = []
+
+  try {
+    if (additionalStoresStr) additionalStores = JSON.parse(additionalStoresStr)
+    if (invitationsStr) invitations = JSON.parse(invitationsStr)
+  } catch (e) {
+    console.error("Failed to parse JSON fields", e)
+  }
 
   const errors: State['errors'] = {}
   if (!orgName) {
@@ -50,7 +64,7 @@ export async function createOrganizationAndStore(prevState: State, formData: For
     }
   }
 
-  // 3. Call RPC function for transactional creation
+  // 3. Call RPC function for initial creation (Org + 1st Store)
   const { data, error } = await supabase.rpc('create_initial_organization_v2', {
     p_org_name: orgName,
     p_store_name: storeName,
@@ -65,13 +79,82 @@ export async function createOrganizationAndStore(prevState: State, formData: For
     }
   }
 
+  const resultData = data as any;
+  
   // Check if organization already exists (idempotency)
-  if (data && (data as any).already_exists) {
+  if (resultData && resultData.already_exists) {
     console.log('Organization already exists for user, redirecting to dashboard.')
+    revalidatePath('/', 'layout')
+    redirect('/dashboard')
   }
 
-  // 4. Revalidate and Redirect
-  // Clear all caches to ensure the new role is recognized
+  const organizationId = resultData.organization_id;
+  const firstStoreId = resultData.store_id;
+
+  // 4. Create Additional Stores
+  if (additionalStores.length > 0 && organizationId) {
+    for (const store of additionalStores) {
+      if (!store.name) continue;
+      
+      const code = (store.name.substring(0, 3).toUpperCase() + Math.floor(Math.random() * 1000)).replace(/[^A-Z0-9]/g, '');
+      
+      // Create Store
+      const { data: newStore, error: storeError } = await supabase
+        .from('stores')
+        .insert({
+          organization_id: organizationId,
+          name: store.name,
+          code: code,
+          settings: { type: storeType }
+        })
+        .select()
+        .single();
+
+      if (storeError) {
+        console.error(`Failed to create additional store ${store.name}:`, storeError);
+        continue;
+      }
+
+      // Assign Owner Role
+      if (newStore) {
+        await supabase.from('user_roles').insert({
+          user_id: user.id,
+          organization_id: organizationId,
+          store_id: newStore.id,
+          role: 'owner'
+        });
+        
+        // Create Sample Data for additional stores if requested
+        if (includeSampleData) {
+           await supabase.rpc('create_sample_data', {
+             p_store_id: newStore.id,
+             p_store_type: storeType
+           });
+        }
+      }
+    }
+  }
+
+  // 5. Create Invitations
+  if (invitations.length > 0 && firstStoreId) {
+    const invitesToInsert = invitations.map(invite => ({
+      store_id: firstStoreId,
+      email: invite.email,
+      role: invite.role,
+      invited_by: user.id
+    }));
+
+    const { error: inviteError } = await supabase
+      .from('store_invitations')
+      .insert(invitesToInsert);
+
+    if (inviteError) {
+      console.error('Failed to create invitations:', inviteError);
+      // Don't fail the whole process for invitation errors
+    }
+  }
+
+  // 6. Revalidate and Redirect
   revalidatePath('/', 'layout')
   redirect('/dashboard')
 }
