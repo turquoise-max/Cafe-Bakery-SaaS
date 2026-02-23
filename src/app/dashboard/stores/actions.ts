@@ -30,7 +30,7 @@ export async function getStores() {
     .from("stores")
     .select("*")
     .eq("organization_id", organizationId)
-    .order("created_at", { ascending: false });
+    .order("name", { ascending: true });
 
   if (error) {
     console.error("Error fetching stores:", error);
@@ -109,7 +109,7 @@ export async function createStore(formData: FormData) {
     p_organization_id: organizationId,
     p_store_name: name,
     p_store_code: code || null, // code가 빈 문자열일 수 있으므로 null 처리
-    p_store_type: { type: "general" }, // 기본값 설정
+    p_store_type: "general", // 기본값 설정 (TEXT 타입)
     p_address: address || null,
     p_phone: phone || null,
   });
@@ -146,17 +146,40 @@ export async function updateStore(storeId: string, formData: FormData) {
         .select("role, organization_id")
         .eq("user_id", user.id)
         .eq("store_id", storeId) 
-        .single();
+        .maybeSingle(); // single() 대신 maybeSingle() 사용 (데이터 없을 수 있음)
     
-    // 슈퍼어드민이나 오너, 매니저 등 적절한 권한 체크 필요. 
-    // 여기서는 간단히 owner/manager 체크 (실제 비즈니스 로직에 맞게 조정 필요)
-    // 또는 RLS에 맡길 수도 있지만, update는 명시적 체크가 안전함.
-    
-    // 만약 user_roles에 store_id가 null인 경우(전체 관리자)도 고려해야 하나,
-    // 현재 구조에서는 store_id가 명시된 경우만 체크한다고 가정.
-    // 더 정확하게는 organization_id가 일치하고 role이 적절한지 봐야함.
-    
-    // 여기서는 간단히 update 수행. RLS policy가 update를 막을 것임.
+    // store_id에 대한 직접적인 권한이 없으면 organization 레벨 권한 확인 (store_id가 null인 경우)
+    let hasPermission = false;
+
+    if (roleData && (roleData.role === 'owner' || roleData.role === 'manager' || roleData.role === 'super_admin')) {
+        hasPermission = true;
+    } else {
+        // store_id가 null인 organization 레벨 권한 확인
+        // 먼저 해당 store의 organization_id를 알아야 함
+        const { data: storeData } = await supabase
+            .from("stores")
+            .select("organization_id")
+            .eq("id", storeId)
+            .single();
+            
+        if (storeData) {
+            const { data: orgRoleData } = await supabase
+                .from("user_roles")
+                .select("role")
+                .eq("user_id", user.id)
+                .eq("organization_id", storeData.organization_id)
+                .is("store_id", null) // store_id가 null인 경우 (조직 전체 권한)
+                .maybeSingle();
+                
+            if (orgRoleData && (orgRoleData.role === 'owner' || orgRoleData.role === 'manager' || orgRoleData.role === 'super_admin')) {
+                hasPermission = true;
+            }
+        }
+    }
+
+    if (!hasPermission) {
+        return { success: false, error: "수정 권한이 없습니다." };
+    }
     
     const { error } = await supabase
         .from("stores")
@@ -192,16 +215,45 @@ export async function deleteStore(storeId: string) {
         .select("role, organization_id")
         .eq("user_id", user.id)
         .eq("store_id", storeId) // 특정 매장 권한 확인
-        .single();
+        .maybeSingle();
     
-    if (!roleData || (roleData.role !== 'owner' && roleData.role !== 'super_admin')) {
-        return { success: false, error: "삭제 권한이 없습니다." };
+    let hasPermission = false;
+
+    // 1. 매장 직접 권한 확인
+    if (roleData && (roleData.role === 'owner' || roleData.role === 'super_admin')) {
+        hasPermission = true;
+    } else {
+        // 2. 조직 레벨 권한 확인 (store_id가 null인 경우)
+        // 먼저 해당 store의 organization_id를 조회
+        const { data: storeData } = await supabase
+            .from("stores")
+            .select("organization_id")
+            .eq("id", storeId)
+            .single();
+            
+        if (storeData) {
+            const { data: orgRoleData } = await supabase
+                .from("user_roles")
+                .select("role")
+                .eq("user_id", user.id)
+                .eq("organization_id", storeData.organization_id)
+                .is("store_id", null) // store_id가 null인 경우 (조직 전체 권한)
+                .maybeSingle();
+                
+            if (orgRoleData && (orgRoleData.role === 'owner' || orgRoleData.role === 'super_admin')) {
+                hasPermission = true;
+            }
+        }
+    }
+    
+    if (!hasPermission) {
+        return { success: false, error: "삭제 권한이 없습니다. (Owner 권한 필요)" };
     }
 
     const { error } = await supabase
         .from("stores")
         .delete()
-        .eq("id", storeId); // 이미 위에서 권한 확인했으므로 바로 삭제
+        .eq("id", storeId);
 
     if (error) {
         console.error("Error deleting store:", error);

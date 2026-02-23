@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { ProfileForm } from "@/components/mypage/profile-form";
 import { StoreList } from "@/components/mypage/store-list";
+import DangerZone from "@/components/mypage/danger-zone";
 import { Separator } from "@/components/ui/separator";
 
 export default async function MyPage() {
@@ -95,7 +96,7 @@ export default async function MyPage() {
           </Card>
         </div>
         
-        <div className="col-span-4">
+        <div className="col-span-4 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>내 매장 목록</CardTitle>
@@ -107,6 +108,8 @@ export default async function MyPage() {
               <StoreList stores={stores} />
             </CardContent>
           </Card>
+
+          <DangerZone />
         </div>
       </div>
     </div>

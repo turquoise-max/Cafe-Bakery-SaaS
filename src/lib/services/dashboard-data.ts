@@ -59,14 +59,16 @@ export async function getDashboardData(storeId?: string) {
 
   const totalSales = salesData?.reduce((sum, s) => sum + Number(s.total_amount), 0) || 0;
 
-  // B. Staff Count
-  // We need to count distinct users in these stores (excluding current user maybe, but let's count all for now)
-  // This query is a bit complex for Supabase simple client, let's try separate query or RPC if needed.
-  // For now, simple query: count user_roles where store_id in targetStoreIds.
-  const { count: staffCount } = await supabase
+  // B. Staff Count (Unique Users)
+  // We need to count distinct users across all stores.
+  // Instead of count(), we fetch user_ids and use a Set to count unique users.
+  const { data: staffRoles } = await supabase
     .from("user_roles")
-    .select("*", { count: "exact", head: true })
+    .select("user_id")
     .in("store_id", targetStoreIds);
+  
+  const uniqueStaffIds = new Set(staffRoles?.map(r => r.user_id));
+  const staffCount = uniqueStaffIds.size;
 
   // C. Low Stock Alerts
   // Join inventory and items to check safety stock

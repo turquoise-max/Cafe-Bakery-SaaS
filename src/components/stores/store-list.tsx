@@ -2,8 +2,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { getStores } from "@/app/dashboard/stores/actions";
 import Link from "next/link";
-import { StoreIcon, Trash2 } from "lucide-react";
-import { deleteStore } from "@/app/dashboard/stores/actions";
+import { StoreIcon } from "lucide-react";
+import { StoreEditModal } from "@/components/stores/store-edit-modal";
+import { StoreDeleteButton } from "@/components/stores/store-delete-button";
 
 export default async function StoreList() {
   const stores = await getStores();
@@ -36,25 +37,13 @@ export default async function StoreList() {
             <CardDescription>{store.address}</CardDescription>
           </CardHeader>
           <CardContent className="flex-1">
-            <p className="text-sm text-muted-foreground">
-              {store.description || "설명이 없습니다."}
-            </p>
             <div className="mt-4 text-sm text-muted-foreground">
               연락처: {store.phone || "미등록"}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Link href={`/dashboard/stores/${store.id}/edit`}>
-                <Button variant="outline">관리하기</Button>
-            </Link>
-            <form action={async () => {
-              "use server";
-              await deleteStore(store.id);
-            }}>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            </form>
+            <StoreEditModal store={store} />
+            <StoreDeleteButton storeId={store.id} storeName={store.name} />
           </CardFooter>
         </Card>
       ))}
