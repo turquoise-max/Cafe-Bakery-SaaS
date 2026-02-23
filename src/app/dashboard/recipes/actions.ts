@@ -114,6 +114,17 @@ export async function createRecipe(data: CreateRecipeInput) {
     console.error("Failed to deactivate old recipes:", deactivateError);
   }
 
+  // 5. Refresh Materialized View
+  const { error: refreshError } = await supabase.rpc("refresh_materialized_view", {
+    view_name: "mv_flattened_bom",
+  });
+
+  if (refreshError) {
+    console.error("Failed to refresh BOM view:", refreshError);
+    // We don't fail the request, but log the error. 
+    // In production, might want to use a background job or retry.
+  }
+
   revalidatePath("/dashboard/recipes");
   return { success: true, recipeId: recipe.id };
 }

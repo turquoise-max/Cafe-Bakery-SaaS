@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
-dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.local" });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -213,8 +213,151 @@ async function verifyInventoryActions() {
     console.error("FAILURE: No adjustment transaction found.");
   }
 
+  // 5. Test Sales Deduction (Simulate)
+  console.log("\n--- Testing Sales Deduction ---");
+  
+  // Create a finished product (Croissant)
+  const productCode = `TEST-PROD-${Date.now()}`;
+  const { data: product, error: productError } = await supabase
+    .from("items")
+    .insert({
+      store_id: storeId,
+      name: "Test Croissant",
+      code: productCode,
+      type: "finished",
+      base_unit: "ea",
+      sale_price: 5000,
+      is_active: true
+    })
+    .select()
+    .single();
+
+  if (productError) {
+    console.error("Error creating product:", productError);
+    return;
+  }
+  console.log(`Created product: ${product.id} (${product.code})`);
+
+  // Create Recipe (Croissant -> 0.1kg Test Inventory Item)
+  const requiredQuantity = 0.1; // 100g
+  const { data: recipe, error: recipeError } = await supabase
+    .from("recipes")
+    .insert({
+      store_id: storeId,
+      output_item_id: product.id,
+      output_quantity: 1,
+      version: 1,
+      is_active: true
+    })
+    .select()
+    .single();
+
+  if (recipeError) {
+    console.error("Error creating recipe:", recipeError);
+    return;
+  }
+
+  const { error: recipeItemError } = await supabase
+    .from("recipe_items")
+    .insert({
+      recipe_id: recipe.id,
+      input_item_id: item.id,
+      quantity: requiredQuantity,
+      unit: "kg"
+    });
+
+  if (recipeItemError) {
+    console.error("Error creating recipe item:", recipeItemError);
+    return;
+  }
+  console.log("Created recipe linking Product -> Material");
+
+  // Refresh Materialized View (Important!)
+  await supabase.rpc('refresh_materialized_view', { view_name: 'mv_flattened_bom' }); 
+  // Note: You need to create this RPC if it doesn't exist, or just hope the view is auto-refreshed or is a normal view. 
+  // For this test, let's assume it might need refresh or check if we can skip it if it's a normal view.
+  // Actually, checking schema might be hard from here. Let's try to just run sales and see.
+  // If it fails, we know we need to refresh.
+  
+  // To be safe, let's try to call refresh via SQL execution if possible, but RPC is safer.
+  // I will check if I can run raw SQL. Supabase client doesn't support raw SQL easily without RPC.
+  // Let's assume for now that we might need to rely on the view being up to date.
+  // Wait, I haven't created 'refresh_materialized_view' RPC. 
+  // I should probably add a migration to add this RPC if I want to support it properly.
+  // But first, let's see if the sales deduction works.
+
+  const saleQuantity = 10;
+  const expectedDeduction = saleQuantity * requiredQuantity; // 10 * 0.1 = 1.0 kg
+
+  // Create Sale
+  const { data: sale, error: saleError } = await supabase
+    .from("sales")
+    .insert({
+      store_id: storeId,
+      sale_date: new Date().toISOString(),
+      total_amount: saleQuantity * 5000,
+      channel: "pos"
+    })
+    .select()
+    .single();
+
+  if (saleError) {
+    console.error("Error creating sale:", saleError);
+    return;
+  }
+
+  // Create Sale Item (Trigger should fire)
+  const { error: saleItemError } = await supabase
+    .from("sales_items")
+    .insert({
+      sale_id: sale.id,
+      item_id: product.id,
+      quantity: saleQuantity,
+      unit_price: 5000
+    });
+
+  if (saleItemError) {
+    console.error("Error creating sale item:", saleItemError);
+    return;
+  }
+  console.log(`Created Sale of ${saleQuantity} Croissants`);
+
+  // Verify Inventory Deduction
+  const { data: inventoryAfterSale, error: invError3 } = await supabase
+    .from("inventory")
+    .select("*")
+    .eq("store_id", storeId)
+    .eq("item_id", item.id)
+    .single();
+
+  if (invError3) {
+    console.error("Error fetching inventory after sale:", invError3);
+  } else {
+    // Previous inventory was 45 (after physical count)
+    // Deduction should be 1.0
+    // Expected: 44
+    const expectedInventory = 45 - expectedDeduction;
+    console.log(`Inventory after sale: ${inventoryAfterSale.theoretical_quantity} (Expected: ${expectedInventory})`);
+    
+    if (Math.abs(Number(inventoryAfterSale.theoretical_quantity) - expectedInventory) < 0.001) {
+      console.log("SUCCESS: Sales deduction updated inventory correctly.");
+    } else {
+      console.error("FAILURE: Sales deduction inventory update mismatch.");
+      console.log(`Note: If mismatch is huge (e.g. no change), check if mv_flattened_bom is up to date.`);
+    }
+  }
+  
   // Cleanup
   console.log("\n--- Cleanup ---");
+  await supabase.from("sales_items").delete().eq("sale_id", sale.id); // Trigger might try to revert? No, trigger is usually only for INSERT/UPDATE. 
+  // Wait, if I delete sales_items, trigger might trigger something if I defined ON DELETE.
+  // The sales trigger in 20240220000007_update_inventory_triggers.sql only defines INSERT/UPDATE. So deleting won't revert inventory.
+  await supabase.from("sales").delete().eq("id", sale.id);
+  await supabase.from("recipe_items").delete().eq("recipe_id", recipe.id);
+  await supabase.from("recipes").delete().eq("id", recipe.id);
+  await supabase.from("items").delete().eq("id", product.id);
+  // ... and the rest of the cleanup
+
   await supabase.from("purchase_order_items").delete().eq("purchase_order_id", po.id);
   await supabase.from("purchase_orders").delete().eq("id", po.id);
   await supabase.from("physical_count_items").delete().eq("physical_count_id", countId);

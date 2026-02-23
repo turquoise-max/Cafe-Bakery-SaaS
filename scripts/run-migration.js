@@ -5,7 +5,11 @@ const { Client } = require('pg');
 // Simple .env parser since we might not have dotenv installed in devDependencies
 function loadEnv() {
   try {
-    const envPath = path.join(__dirname, '../.env');
+    let envPath = path.join(__dirname, '../.env.local');
+    if (!fs.existsSync(envPath)) {
+      envPath = path.join(__dirname, '../.env');
+    }
+    
     if (fs.existsSync(envPath)) {
       const envContent = fs.readFileSync(envPath, 'utf8');
       envContent.split('\n').forEach(line => {

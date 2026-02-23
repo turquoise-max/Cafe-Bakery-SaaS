@@ -13,13 +13,13 @@ export default async function OnboardingPage() {
   }
 
   // 2. Check if user is already onboarded (has a role)
-  const { data: userRoles } = await supabase
+  const { data: existingRoles } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
 
-  if (userRoles) {
+  if (existingRoles && existingRoles.length > 0) {
     redirect('/dashboard')
   }
 

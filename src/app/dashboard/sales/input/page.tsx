@@ -46,9 +46,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 const manualSalesSchema = z.object({
-  date: z.date({
-    required_error: "날짜를 선택해주세요.",
-  }),
+  date: z.date(),
   time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
     message: "올바른 시간 형식을 입력해주세요 (HH:MM)",
   }),

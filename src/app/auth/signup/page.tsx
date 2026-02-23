@@ -1,10 +1,11 @@
 'use client'
 
+import { useActionState, useEffect } from 'react'
 import Link from 'next/link'
-import { useActionState } from 'react'
-import { signup, type SignupState } from './actions'
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+
+import { signup, type SignupState } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,13 +18,12 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
 
+// 초기 상태 정의
 const initialState: SignupState = {
   success: false,
   message: '',
   error: '',
-  redirect: ''
 }
 
 export default function SignupPage() {
@@ -42,7 +42,7 @@ export default function SignupPage() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">회원가입</CardTitle>
           <CardDescription>
-            새로운 계정을 생성하여 시작하세요
+            새로운 계정을 생성하여 서비스를 시작하세요
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -53,7 +53,7 @@ export default function SignupPage() {
               </Alert>
             )}
 
-            {state.message && (
+            {state.message && !state.error && (
               <Alert className="border-green-200 bg-green-50 text-green-800">
                 <AlertDescription>{state.message}</AlertDescription>
               </Alert>
@@ -102,10 +102,10 @@ export default function SignupPage() {
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  가입 중...
+                  가입 처리 중...
                 </>
               ) : (
-                '가입하기'
+                '계정 만들기'
               )}
             </Button>
           </form>

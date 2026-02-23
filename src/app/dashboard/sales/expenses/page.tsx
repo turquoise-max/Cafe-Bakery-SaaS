@@ -69,9 +69,7 @@ type Expense = {
 
 // 폼 스키마
 const expenseSchema = z.object({
-  date: z.date({
-    required_error: "날짜를 선택해주세요.",
-  }),
+  date: z.date(),
   category: z.enum([
     "rent",
     "labor",

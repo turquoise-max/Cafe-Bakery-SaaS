@@ -4,24 +4,43 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ==========================================
 -- 1. ENUM Types
 -- ==========================================
-CREATE TYPE item_type AS ENUM ('raw', 'semi_finished', 'finished');
-CREATE TYPE unit_type AS ENUM ('kg', 'g', 'l', 'ml', 'ea', 'box', 'pack');
-CREATE TYPE transaction_type AS ENUM (
-  'purchase',      -- 입고
-  'sale',          -- 판매 출고
-  'adjustment',    -- 조정 (실사 후)
-  'waste',         -- 폐기
-  'production',    -- 생산
-  'transfer'       -- 매장 간 이동
-);
-CREATE TYPE po_status AS ENUM ('draft', 'ordered', 'received', 'cancelled');
+DO $$ BEGIN
+    CREATE TYPE item_type AS ENUM ('raw', 'semi_finished', 'finished');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE unit_type AS ENUM ('kg', 'g', 'l', 'ml', 'ea', 'box', 'pack');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE transaction_type AS ENUM (
+        'purchase',      -- 입고
+        'sale',          -- 판매 출고
+        'adjustment',    -- 조정 (실사 후)
+        'waste',         -- 폐기
+        'production',    -- 생산
+        'transfer'       -- 매장 간 이동
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE po_status AS ENUM ('draft', 'ordered', 'received', 'cancelled');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- ==========================================
 -- 2. Core Tables (Multi-tenancy)
 -- ==========================================
 
 -- Organizations
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(100) UNIQUE NOT NULL,
@@ -36,7 +55,7 @@ CREATE TABLE organizations (
 );
 
 -- Stores
-CREATE TABLE stores (
+CREATE TABLE IF NOT EXISTS stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -52,11 +71,11 @@ CREATE TABLE stores (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_stores_org ON stores(organization_id);
-CREATE INDEX idx_stores_code ON stores(organization_id, code);
+CREATE INDEX IF NOT EXISTS idx_stores_org ON stores(organization_id);
+CREATE INDEX IF NOT EXISTS idx_stores_code ON stores(organization_id, code);
 
 -- Users (public profile linked to auth.users)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(100),
@@ -69,10 +88,10 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- User Roles
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -82,11 +101,11 @@ CREATE TABLE user_roles (
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(user_id, store_id)
 );
-CREATE INDEX idx_user_roles_user ON user_roles(user_id);
-CREATE INDEX idx_user_roles_store ON user_roles(store_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user ON user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_store ON user_roles(store_id);
 
 -- Unit Conversions
-CREATE TABLE unit_conversions (
+CREATE TABLE IF NOT EXISTS unit_conversions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   from_unit unit_type NOT NULL,
   to_unit unit_type NOT NULL,
@@ -95,22 +114,24 @@ CREATE TABLE unit_conversions (
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(from_unit, to_unit, item_id)
 );
-CREATE INDEX idx_unit_conv_from_to ON unit_conversions(from_unit, to_unit);
+CREATE INDEX IF NOT EXISTS idx_unit_conv_from_to ON unit_conversions(from_unit, to_unit);
 
-INSERT INTO unit_conversions (from_unit, to_unit, conversion_factor) VALUES
+INSERT INTO unit_conversions (from_unit, to_unit, conversion_factor)
+VALUES
   ('kg', 'g', 1000),
   ('g', 'kg', 0.001),
   ('l', 'ml', 1000),
   ('ml', 'l', 0.001),
   ('box', 'ea', 12),
-  ('pack', 'g', 500);
+  ('pack', 'g', 500)
+ON CONFLICT DO NOTHING;
 
 -- ==========================================
 -- 3. BOM Tables
 -- ==========================================
 
 -- Categories
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
@@ -118,10 +139,10 @@ CREATE TABLE categories (
   display_order INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_categories_store ON categories(store_id);
+CREATE INDEX IF NOT EXISTS idx_categories_store ON categories(store_id);
 
 -- Items
-CREATE TABLE items (
+CREATE TABLE IF NOT EXISTS items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   code VARCHAR(50),
@@ -141,11 +162,11 @@ CREATE TABLE items (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_items_store ON items(store_id);
-CREATE INDEX idx_items_type ON items(store_id, type);
+CREATE INDEX IF NOT EXISTS idx_items_store ON items(store_id);
+CREATE INDEX IF NOT EXISTS idx_items_type ON items(store_id, type);
 
 -- Recipes
-CREATE TABLE recipes (
+CREATE TABLE IF NOT EXISTS recipes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   output_item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
@@ -160,10 +181,10 @@ CREATE TABLE recipes (
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(store_id, output_item_id, version)
 );
-CREATE INDEX idx_recipes_output ON recipes(output_item_id);
+CREATE INDEX IF NOT EXISTS idx_recipes_output ON recipes(output_item_id);
 
 -- Recipe Items
-CREATE TABLE recipe_items (
+CREATE TABLE IF NOT EXISTS recipe_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
   input_item_id UUID NOT NULL REFERENCES items(id) ON DELETE RESTRICT,
@@ -174,10 +195,10 @@ CREATE TABLE recipe_items (
   notes TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_recipe_items_recipe ON recipe_items(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_recipe_items_recipe ON recipe_items(recipe_id);
 
 -- Item Options (Additional ingredients for customization)
-CREATE TABLE item_options (
+CREATE TABLE IF NOT EXISTS item_options (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
   option_name VARCHAR(100) NOT NULL,
@@ -188,14 +209,14 @@ CREATE TABLE item_options (
   price_adjustment DECIMAL(10, 2) DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_item_options_item ON item_options(item_id);
+CREATE INDEX IF NOT EXISTS idx_item_options_item ON item_options(item_id);
 
 -- ==========================================
 -- 4. Inventory & Sales Tables
 -- ==========================================
 
 -- Suppliers
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -211,10 +232,10 @@ CREATE TABLE suppliers (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_suppliers_store ON suppliers(store_id);
+CREATE INDEX IF NOT EXISTS idx_suppliers_store ON suppliers(store_id);
 
 -- Purchase Orders
-CREATE TABLE purchase_orders (
+CREATE TABLE IF NOT EXISTS purchase_orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   po_number VARCHAR(50) UNIQUE,
@@ -229,10 +250,10 @@ CREATE TABLE purchase_orders (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_po_store ON purchase_orders(store_id);
+CREATE INDEX IF NOT EXISTS idx_po_store ON purchase_orders(store_id);
 
 -- Purchase Order Items
-CREATE TABLE purchase_order_items (
+CREATE TABLE IF NOT EXISTS purchase_order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id),
@@ -243,10 +264,10 @@ CREATE TABLE purchase_order_items (
   expiry_date DATE,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_poi_po ON purchase_order_items(purchase_order_id);
+CREATE INDEX IF NOT EXISTS idx_poi_po ON purchase_order_items(purchase_order_id);
 
 -- Inventory
-CREATE TABLE inventory (
+CREATE TABLE IF NOT EXISTS inventory (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
@@ -258,10 +279,10 @@ CREATE TABLE inventory (
   last_updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(store_id, item_id)
 );
-CREATE INDEX idx_inventory_store ON inventory(store_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_store ON inventory(store_id);
 
 -- Inventory Transactions
-CREATE TABLE inventory_transactions (
+CREATE TABLE IF NOT EXISTS inventory_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
@@ -277,10 +298,10 @@ CREATE TABLE inventory_transactions (
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_inv_trans_store ON inventory_transactions(store_id);
+CREATE INDEX IF NOT EXISTS idx_inv_trans_store ON inventory_transactions(store_id);
 
 -- Inventory Lots
-CREATE TABLE inventory_lots (
+CREATE TABLE IF NOT EXISTS inventory_lots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
@@ -294,10 +315,10 @@ CREATE TABLE inventory_lots (
   purchase_order_item_id UUID,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_lots_store ON inventory_lots(store_id);
+CREATE INDEX IF NOT EXISTS idx_lots_store ON inventory_lots(store_id);
 
 -- Physical Counts
-CREATE TABLE physical_counts (
+CREATE TABLE IF NOT EXISTS physical_counts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   count_date DATE NOT NULL,
@@ -310,10 +331,10 @@ CREATE TABLE physical_counts (
   created_at TIMESTAMP DEFAULT NOW(),
   completed_at TIMESTAMP
 );
-CREATE INDEX idx_pc_store ON physical_counts(store_id);
+CREATE INDEX IF NOT EXISTS idx_pc_store ON physical_counts(store_id);
 
 -- Physical Count Items
-CREATE TABLE physical_count_items (
+CREATE TABLE IF NOT EXISTS physical_count_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   physical_count_id UUID NOT NULL REFERENCES physical_counts(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id),
@@ -326,10 +347,10 @@ CREATE TABLE physical_count_items (
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(physical_count_id, item_id)
 );
-CREATE INDEX idx_pci_pc ON physical_count_items(physical_count_id);
+CREATE INDEX IF NOT EXISTS idx_pci_pc ON physical_count_items(physical_count_id);
 
 -- Sales
-CREATE TABLE sales (
+CREATE TABLE IF NOT EXISTS sales (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   order_number VARCHAR(100),
@@ -339,10 +360,10 @@ CREATE TABLE sales (
   sale_time TIME,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_sales_store ON sales(store_id);
+CREATE INDEX IF NOT EXISTS idx_sales_store ON sales(store_id);
 
 -- Sales Items
-CREATE TABLE sales_items (
+CREATE TABLE IF NOT EXISTS sales_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sale_id UUID NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES items(id),
@@ -351,10 +372,10 @@ CREATE TABLE sales_items (
   options JSONB,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_sales_items_sale ON sales_items(sale_id);
+CREATE INDEX IF NOT EXISTS idx_sales_items_sale ON sales_items(sale_id);
 
 -- Expenses
-CREATE TABLE expenses (
+CREATE TABLE IF NOT EXISTS expenses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   expense_date DATE NOT NULL,
@@ -363,29 +384,48 @@ CREATE TABLE expenses (
   description TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX idx_expenses_store ON expenses(store_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_store ON expenses(store_id);
 
--- Invitations
-CREATE TABLE store_invitations (
+-- Invitations (Consolidated Schema)
+CREATE TABLE IF NOT EXISTS store_invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL,
   role VARCHAR(50) NOT NULL,
   invited_by UUID NOT NULL REFERENCES users(id),
   status VARCHAR(20) DEFAULT 'pending',
   token UUID DEFAULT gen_random_uuid(),
   created_at TIMESTAMP DEFAULT NOW(),
+  accepted_at TIMESTAMP,
   expires_at TIMESTAMP DEFAULT (NOW() + INTERVAL '7 days'),
   UNIQUE(store_id, email)
 );
-CREATE INDEX idx_invitations_store ON store_invitations(store_id);
-CREATE INDEX idx_invitations_token ON store_invitations(token);
+CREATE INDEX IF NOT EXISTS idx_invitations_store ON store_invitations(store_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_token ON store_invitations(token);
 
 -- ==========================================
 -- 5. RLS Policies
 -- ==========================================
 
--- Helper function for RLS
+-- Enable RLS on all tables
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recipe_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE store_invitations ENABLE ROW LEVEL SECURITY;
+
+-- Helper functions for RLS
 CREATE OR REPLACE FUNCTION is_store_member(store_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -409,95 +449,136 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Enable RLS on all tables
-ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE recipe_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inventory_transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
-ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE store_invitations ENABLE ROW LEVEL SECURITY;
-
--- Policy Definitions (Simplified for brevity, ensuring standard pattern)
+CREATE OR REPLACE FUNCTION is_org_admin(org_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM user_roles
+    WHERE user_id = auth.uid()
+    AND organization_id = org_id
+    AND role IN ('owner', 'manager')
+  );
+END;
+$$;
 
 -- Organizations & Stores: Viewable by members
+DROP POLICY IF EXISTS "Members can view organizations" ON organizations;
 CREATE POLICY "Members can view organizations" ON organizations FOR SELECT USING (
   id IN (SELECT organization_id FROM user_roles WHERE user_id = auth.uid())
 );
+
+DROP POLICY IF EXISTS "Members can view stores" ON stores;
 CREATE POLICY "Members can view stores" ON stores FOR SELECT USING (
   id IN (SELECT store_id FROM user_roles WHERE user_id = auth.uid())
 );
 
 -- Users: Viewable by self or co-workers
+DROP POLICY IF EXISTS "Users can view own profile" ON users;
 CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
 
--- User Roles: Viewable by members of same store/org
-CREATE POLICY "Members can view roles" ON user_roles FOR SELECT USING (
-  user_id = auth.uid() OR 
-  store_id IN (SELECT store_id FROM user_roles WHERE user_id = auth.uid())
+-- Allow users to view profiles of people in the same organization (for staff lists)
+DROP POLICY IF EXISTS "Users can view co-workers" ON users;
+CREATE POLICY "Users can view co-workers" ON users FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM user_roles my_role
+    JOIN user_roles other_role ON my_role.store_id = other_role.store_id
+    WHERE my_role.user_id = auth.uid()
+    AND other_role.user_id = users.id
+  )
+);
+
+-- User Roles
+-- View own roles
+DROP POLICY IF EXISTS "Users can view own roles" ON user_roles;
+CREATE POLICY "Users can view own roles" ON user_roles
+FOR SELECT USING (user_id = auth.uid());
+
+-- View roles of same organization (for admins/managers to see staff)
+DROP POLICY IF EXISTS "Admins can view org roles" ON user_roles;
+CREATE POLICY "Admins can view org roles" ON user_roles
+FOR SELECT USING (
+  is_org_admin(organization_id)
 );
 
 -- Business Data Policies (Items, Inventory, Sales, etc.)
--- Pattern: SELECT for members, INSERT/UPDATE/DELETE for admins (owner/manager)
 
 -- Items
+DROP POLICY IF EXISTS "Members can view items" ON items;
 CREATE POLICY "Members can view items" ON items FOR SELECT USING (is_store_member(store_id));
+
+DROP POLICY IF EXISTS "Admins can manage items" ON items;
 CREATE POLICY "Admins can manage items" ON items FOR ALL USING (is_store_admin(store_id));
 
 -- Inventory
+DROP POLICY IF EXISTS "Members can view inventory" ON inventory;
 CREATE POLICY "Members can view inventory" ON inventory FOR SELECT USING (is_store_member(store_id));
+
+DROP POLICY IF EXISTS "Admins can manage inventory" ON inventory;
 CREATE POLICY "Admins can manage inventory" ON inventory FOR ALL USING (is_store_admin(store_id));
 
 -- Sales
+DROP POLICY IF EXISTS "Members can view sales" ON sales;
 CREATE POLICY "Members can view sales" ON sales FOR SELECT USING (is_store_member(store_id));
+
+DROP POLICY IF EXISTS "Admins can manage sales" ON sales;
 CREATE POLICY "Admins can manage sales" ON sales FOR ALL USING (is_store_admin(store_id));
 
 -- Expenses
+DROP POLICY IF EXISTS "Members can view expenses" ON expenses;
 CREATE POLICY "Members can view expenses" ON expenses FOR SELECT USING (is_store_member(store_id));
+
+DROP POLICY IF EXISTS "Admins can manage expenses" ON expenses;
 CREATE POLICY "Admins can manage expenses" ON expenses FOR ALL USING (is_store_admin(store_id));
 
 -- Invitations
+DROP POLICY IF EXISTS "Admins can manage invitations" ON store_invitations;
 CREATE POLICY "Admins can manage invitations" ON store_invitations FOR ALL USING (is_store_admin(store_id));
 
 -- ==========================================
 -- 6. Functions & Triggers
 -- ==========================================
 
--- Auth Hook: Create public user record on signup
+-- Auth Hook: Create public user record on signup (Idempotent)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.users (id, email, name, avatar_url)
   VALUES (
-    new.id,
-    new.email,
-    new.raw_user_meta_data->>'name',
-    new.raw_user_meta_data->>'avatar_url'
-  );
-  RETURN new;
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email),
+    NEW.raw_user_meta_data->>'avatar_url'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    name = COALESCE(EXCLUDED.name, public.users.name),
+    avatar_url = COALESCE(EXCLUDED.avatar_url, public.users.avatar_url),
+    updated_at = now();
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Recreate trigger to ensure it uses the updated function
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- Materialized View for BOM
-CREATE MATERIALIZED VIEW mv_flattened_bom AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_flattened_bom AS
 WITH RECURSIVE bom_tree AS (
   SELECT
     r.output_item_id AS product_id,
     ri.input_item_id AS material_id,
-    ri.quantity,
+    ri.quantity::DECIMAL,
     ri.unit,
     1 AS level
   FROM recipes r
@@ -529,7 +610,15 @@ JOIN items m ON m.id = bt.material_id
 WHERE m.type = 'raw'
 GROUP BY bt.product_id, p.name, bt.material_id, m.name, bt.unit;
 
-CREATE INDEX idx_mv_bom_product ON mv_flattened_bom(product_id);
+CREATE INDEX IF NOT EXISTS idx_mv_bom_product ON mv_flattened_bom(product_id);
+
+-- Helper RPC to refresh BOM MV
+CREATE OR REPLACE FUNCTION refresh_mv_flattened_bom()
+RETURNS void AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW mv_flattened_bom;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Sales Trigger: Deduct Inventory
 CREATE OR REPLACE FUNCTION process_sale_inventory()
@@ -561,15 +650,11 @@ BEGIN
     );
   END LOOP;
 
-  -- 2. Deduct direct item if no BOM (e.g., selling a raw material directly or simple product)
-  IF NOT EXISTS (SELECT 1 FROM mv_flattened_bom WHERE product_id = NEW.item_id) THEN
-     -- Logic for simple deduction if needed, or skip
-  END IF;
-
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_sale_inventory_deduction ON sales_items;
 CREATE TRIGGER trg_sale_inventory_deduction
   AFTER INSERT ON sales_items
   FOR EACH ROW
@@ -604,59 +689,65 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_purchase_receipt_inventory ON purchase_order_items;
 CREATE TRIGGER trg_purchase_receipt_inventory
   AFTER UPDATE OF received_quantity ON purchase_order_items
   FOR EACH ROW
   WHEN (OLD.received_quantity IS DISTINCT FROM NEW.received_quantity)
   EXECUTE FUNCTION process_purchase_receipt();
 
--- Sample Data Generator Function
-CREATE OR REPLACE FUNCTION create_sample_data(
-  p_store_id UUID,
-  p_store_type TEXT
-)
-RETURNS VOID
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
+-- Invitation Acceptance Handler (Robust Version)
+CREATE OR REPLACE FUNCTION handle_invitation_acceptance()
+RETURNS TRIGGER AS $$
 DECLARE
-  v_category_raw_id UUID;
-  v_category_bread_id UUID;
-  v_item_flour_id UUID;
-  v_item_butter_id UUID;
-  v_item_croissant_id UUID;
-  v_recipe_id UUID;
+  invitation_record record;
+  user_exists boolean;
+  v_org_id UUID;
+  v_user_id UUID;
 BEGIN
-  -- Simple sample data generation
-  INSERT INTO categories (store_id, name) VALUES (p_store_id, '원자재') RETURNING id INTO v_category_raw_id;
-  INSERT INTO categories (store_id, name) VALUES (p_store_id, '베이커리') RETURNING id INTO v_category_bread_id;
-
-  INSERT INTO items (store_id, name, code, type, category_id, base_unit, purchase_unit, latest_purchase_price, safety_stock)
-  VALUES (p_store_id, '박력분', 'RAW-001', 'raw', v_category_raw_id, 'g', 'kg', 0.005, 5000)
-  RETURNING id INTO v_item_flour_id;
-
-  INSERT INTO items (store_id, name, code, type, category_id, base_unit, purchase_unit, latest_purchase_price, safety_stock)
-  VALUES (p_store_id, '버터', 'RAW-002', 'raw', v_category_raw_id, 'g', 'kg', 0.015, 2000)
-  RETURNING id INTO v_item_butter_id;
-
-  INSERT INTO items (store_id, name, code, type, category_id, base_unit, sale_price, is_inventory_managed)
-  VALUES (p_store_id, '크로와상', 'BAKE-001', 'finished', v_category_bread_id, 'ea', 4500, true)
-  RETURNING id INTO v_item_croissant_id;
-
-  INSERT INTO recipes (store_id, output_item_id, output_quantity, name)
-  VALUES (p_store_id, v_item_croissant_id, 1, '기본 크로와상')
-  RETURNING id INTO v_recipe_id;
-
-  INSERT INTO recipe_items (recipe_id, input_item_id, quantity, unit)
-  VALUES (v_recipe_id, v_item_flour_id, 50, 'g'), (v_recipe_id, v_item_butter_id, 30, 'g');
+  -- We are triggering BEFORE UPDATE on store_invitations when status changes to 'accepted'
+  -- NEW contains the updated invitation record
   
-  -- Refresh view
-  REFRESH MATERIALIZED VIEW mv_flattened_bom;
-END;
-$$;
+  -- 1. Identify the user (Assuming the user just signed up or logged in with this email)
+  -- The trigger context doesn't give us the current auth user easily if triggered by RLS update?
+  -- Wait, usually the user accepts invitation via an API call that updates the table.
+  -- The API call should set 'accepted_at' = now() and 'status' = 'accepted'.
+  
+  -- Check if user exists with this email
+  SELECT id INTO v_user_id FROM auth.users WHERE email = NEW.email;
+  
+  IF v_user_id IS NOT NULL THEN
+    -- Ensure public.users record exists
+    INSERT INTO public.users (id, email, name)
+    VALUES (v_user_id, NEW.email, split_part(NEW.email, '@', 1))
+    ON CONFLICT (id) DO NOTHING;
 
--- Onboarding RPC (Final Version)
+    -- Create user_role
+    -- Get org id if not present in invitation (for backward compatibility)
+    IF NEW.organization_id IS NULL THEN
+        SELECT organization_id INTO v_org_id FROM stores WHERE id = NEW.store_id;
+    ELSE
+        v_org_id := NEW.organization_id;
+    END IF;
+
+    INSERT INTO public.user_roles (user_id, organization_id, store_id, role)
+    VALUES (v_user_id, v_org_id, NEW.store_id, NEW.role)
+    ON CONFLICT (user_id, store_id) DO NOTHING;
+    
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_invitation_accepted ON store_invitations;
+CREATE TRIGGER on_invitation_accepted
+  BEFORE UPDATE ON store_invitations
+  FOR EACH ROW
+  WHEN (OLD.status = 'pending' AND NEW.status = 'accepted')
+  EXECUTE PROCEDURE handle_invitation_acceptance();
+
+-- Onboarding RPC (Updated)
 CREATE OR REPLACE FUNCTION create_initial_organization_v2(
   p_org_name TEXT,
   p_store_name TEXT,
@@ -713,3 +804,346 @@ BEGIN
   );
 END;
 $$;
+
+-- Sample Data Generator (Helper)
+CREATE OR REPLACE FUNCTION create_sample_data(
+  p_store_id UUID,
+  p_store_type TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_category_raw_id UUID;
+  v_category_bread_id UUID;
+  v_item_flour_id UUID;
+  v_item_butter_id UUID;
+  v_item_croissant_id UUID;
+  v_recipe_id UUID;
+BEGIN
+  INSERT INTO categories (store_id, name) VALUES (p_store_id, '원자재') RETURNING id INTO v_category_raw_id;
+  INSERT INTO categories (store_id, name) VALUES (p_store_id, '베이커리') RETURNING id INTO v_category_bread_id;
+
+  INSERT INTO items (store_id, name, code, type, category_id, base_unit, purchase_unit, latest_purchase_price, safety_stock)
+  VALUES (p_store_id, '박력분', 'RAW-001', 'raw', v_category_raw_id, 'g', 'kg', 0.005, 5000)
+  RETURNING id INTO v_item_flour_id;
+
+  INSERT INTO items (store_id, name, code, type, category_id, base_unit, purchase_unit, latest_purchase_price, safety_stock)
+  VALUES (p_store_id, '버터', 'RAW-002', 'raw', v_category_raw_id, 'g', 'kg', 0.015, 2000)
+  RETURNING id INTO v_item_butter_id;
+
+  INSERT INTO items (store_id, name, code, type, category_id, base_unit, sale_price, is_inventory_managed)
+  VALUES (p_store_id, '크로와상', 'BAKE-001', 'finished', v_category_bread_id, 'ea', 4500, true)
+  RETURNING id INTO v_item_croissant_id;
+
+  INSERT INTO recipes (store_id, output_item_id, output_quantity, name)
+  VALUES (p_store_id, v_item_croissant_id, 1, '기본 크로와상')
+  RETURNING id INTO v_recipe_id;
+
+  INSERT INTO recipe_items (recipe_id, input_item_id, quantity, unit)
+  VALUES (v_recipe_id, v_item_flour_id, 50, 'g'), (v_recipe_id, v_item_butter_id, 30, 'g');
+  
+  PERFORM refresh_mv_flattened_bom();
+END;
+$$;
+
+-- Inventory Helper Functions
+CREATE OR REPLACE FUNCTION get_low_stock_items(p_store_id UUID)
+RETURNS TABLE(
+  item_name VARCHAR,
+  current_quantity DECIMAL,
+  safety_stock DECIMAL,
+  shortage DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    i.name::VARCHAR,
+    inv.theoretical_quantity,
+    i.safety_stock,
+    (i.safety_stock - inv.theoretical_quantity) AS shortage
+  FROM inventory inv
+  JOIN items i ON i.id = inv.item_id
+  WHERE inv.store_id = p_store_id
+    AND inv.theoretical_quantity < i.safety_stock
+    AND i.is_inventory_managed = true
+  ORDER BY shortage DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION get_expiring_items(
+  p_store_id UUID,
+  p_days_threshold INT DEFAULT 7
+) RETURNS TABLE(
+  item_name VARCHAR,
+  lot_number VARCHAR,
+  remaining_quantity DECIMAL,
+  expiry_date DATE,
+  days_until_expiry INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    i.name::VARCHAR,
+    il.lot_number::VARCHAR,
+    il.remaining_quantity,
+    il.expiry_date,
+    (il.expiry_date - CURRENT_DATE)::INT
+  FROM inventory_lots il
+  JOIN items i ON i.id = il.item_id
+  WHERE il.store_id = p_store_id
+    AND il.expiry_date IS NOT NULL
+    AND il.expiry_date <= CURRENT_DATE + p_days_threshold
+    AND il.remaining_quantity > 0
+  ORDER BY il.expiry_date ASC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION start_physical_count(
+  p_store_id UUID,
+  p_count_date DATE,
+  p_zone VARCHAR,
+  p_user_id UUID
+) RETURNS UUID AS $$
+DECLARE
+  v_count_id UUID;
+BEGIN
+  INSERT INTO physical_counts (
+    store_id,
+    count_date,
+    count_type,
+    zone,
+    counted_by
+  ) VALUES (
+    p_store_id,
+    p_count_date,
+    'spot',
+    p_zone,
+    p_user_id
+  ) RETURNING id INTO v_count_id;
+  RETURN v_count_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION record_count_item(
+  p_count_id UUID,
+  p_item_id UUID,
+  p_counted_quantity DECIMAL,
+  p_unit unit_type,
+  p_notes TEXT DEFAULT NULL
+) RETURNS VOID AS $$
+DECLARE
+  v_system_qty DECIMAL;
+  v_store_id UUID;
+BEGIN
+  SELECT store_id INTO v_store_id FROM physical_counts WHERE id = p_count_id;
+  
+  SELECT theoretical_quantity INTO v_system_qty
+  FROM inventory
+  WHERE store_id = v_store_id
+    AND item_id = p_item_id;
+
+  INSERT INTO physical_count_items (
+    physical_count_id,
+    item_id,
+    counted_quantity,
+    unit,
+    system_quantity,
+    notes
+  ) VALUES (
+    p_count_id,
+    p_item_id,
+    p_counted_quantity,
+    p_unit,
+    COALESCE(v_system_qty, 0),
+    p_notes
+  )
+  ON CONFLICT (physical_count_id, item_id)
+  DO UPDATE SET
+    counted_quantity = EXCLUDED.counted_quantity,
+    notes = EXCLUDED.notes;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION complete_physical_count(p_count_id UUID)
+RETURNS VOID AS $$
+DECLARE
+  v_item RECORD;
+  v_store_id UUID;
+  v_count_date DATE;
+BEGIN
+  SELECT store_id, count_date INTO v_store_id, v_count_date
+  FROM physical_counts
+  WHERE id = p_count_id;
+
+  FOR v_item IN
+    SELECT
+      item_id,
+      counted_quantity,
+      system_quantity,
+      variance,
+      unit
+    FROM physical_count_items
+    WHERE physical_count_id = p_count_id
+  LOOP
+    INSERT INTO inventory (store_id, item_id, theoretical_quantity, physical_quantity, last_physical_count_at)
+    VALUES (v_store_id, v_item.item_id, v_item.counted_quantity, v_item.counted_quantity, NOW())
+    ON CONFLICT (store_id, item_id)
+    DO UPDATE SET
+      physical_quantity = v_item.counted_quantity,
+      theoretical_quantity = v_item.counted_quantity,
+      last_physical_count_at = NOW(),
+      last_updated_at = NOW();
+
+    IF v_item.variance != 0 THEN
+      INSERT INTO inventory_transactions (
+        store_id,
+        item_id,
+        transaction_type,
+        quantity,
+        unit,
+        reference_type,
+        reference_id,
+        transaction_date,
+        notes
+      ) VALUES (
+        v_store_id,
+        v_item.item_id,
+        'adjustment',
+        v_item.variance,
+        v_item.unit,
+        'physical_count',
+        p_count_id,
+        v_count_date,
+        'Physical count adjustment'
+      );
+    END IF;
+  END LOOP;
+
+  UPDATE physical_counts
+  SET
+    status = 'completed',
+    completed_at = NOW()
+  WHERE id = p_count_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Unit Conversion Function
+CREATE OR REPLACE FUNCTION convert_unit(
+  p_quantity DECIMAL,
+  p_from_unit unit_type,
+  p_to_unit unit_type,
+  p_item_id UUID DEFAULT NULL
+) RETURNS DECIMAL AS $$
+DECLARE
+  v_factor DECIMAL;
+BEGIN
+  IF p_from_unit = p_to_unit THEN
+    RETURN p_quantity;
+  END IF;
+
+  SELECT conversion_factor INTO v_factor
+  FROM unit_conversions
+  WHERE from_unit = p_from_unit
+    AND to_unit = p_to_unit
+    AND (item_id = p_item_id OR item_id IS NULL)
+  ORDER BY item_id DESC NULLS LAST
+  LIMIT 1;
+
+  IF v_factor IS NULL THEN
+    RAISE EXCEPTION 'No conversion found: % to %', p_from_unit, p_to_unit;
+  END IF;
+
+  RETURN p_quantity * v_factor;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Product Cost Calculation Function
+CREATE OR REPLACE FUNCTION calculate_product_cost(p_item_id UUID)
+RETURNS TABLE(
+  raw_material VARCHAR,
+  quantity DECIMAL,
+  unit VARCHAR,
+  unit_price DECIMAL,
+  total_cost DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    m.material_name::VARCHAR,
+    m.total_quantity,
+    m.unit::VARCHAR,
+    i.latest_purchase_price,
+    m.total_quantity * i.latest_purchase_price
+  FROM mv_flattened_bom m
+  JOIN items i ON i.id = m.material_id
+  WHERE m.product_id = p_item_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create Store Function
+CREATE OR REPLACE FUNCTION create_store_v2(
+  p_organization_id UUID,
+  p_store_code TEXT,
+  p_store_name TEXT,
+  p_store_type TEXT DEFAULT 'bakery'
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_new_store_id UUID;
+  v_user_id UUID;
+BEGIN
+  v_user_id := auth.uid();
+  IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+  -- Check permissions: User must be an owner or manager of the organization
+  IF NOT EXISTS (
+    SELECT 1 FROM user_roles 
+    WHERE user_id = v_user_id 
+    AND organization_id = p_organization_id
+    AND role IN ('owner', 'manager')
+  ) THEN
+    RAISE EXCEPTION 'Permission denied: You must be an owner or manager to create a store.';
+  END IF;
+
+  -- Create Store
+  INSERT INTO stores (organization_id, name, code, settings)
+  VALUES (p_organization_id, p_store_name, p_store_code, jsonb_build_object('type', p_store_type))
+  RETURNING id INTO v_new_store_id;
+
+  -- Create User Role for the creator (as owner of this store)
+  INSERT INTO user_roles (user_id, organization_id, store_id, role)
+  VALUES (v_user_id, p_organization_id, v_new_store_id, 'owner');
+
+  -- Create basic categories for the new store
+  INSERT INTO categories (store_id, name) VALUES (v_new_store_id, '기본');
+
+  RETURN json_build_object(
+    'store_id', v_new_store_id,
+    'created', true
+  );
+END;
+$$;
+
+-- ==========================================
+-- 7. Permissions
+-- ==========================================
+
+-- Grant usage on schema to standard roles
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+
+-- Grant access to all tables
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+
+-- Ensure future objects get these grants
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO postgres, anon, authenticated, service_role;

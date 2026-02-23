@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export type State = {
   message?: string | null
@@ -98,59 +98,63 @@ export async function createOrganizationAndStore(prevState: State, formData: For
       
       const code = (store.name.substring(0, 3).toUpperCase() + Math.floor(Math.random() * 1000)).replace(/[^A-Z0-9]/g, '');
       
-      // Create Store
-      const { data: newStore, error: storeError } = await supabase
-        .from('stores')
-        .insert({
-          organization_id: organizationId,
-          name: store.name,
-          code: code,
-          settings: { type: storeType }
-        })
-        .select()
-        .single();
+      // Create Store using RPC
+      const { data: newStoreId, error: storeError } = await supabase.rpc('create_store_v2', {
+        p_organization_id: organizationId,
+        p_store_name: store.name,
+        p_store_code: code,
+        p_store_type: { type: storeType }
+      });
 
       if (storeError) {
         console.error(`Failed to create additional store ${store.name}:`, storeError);
         continue;
       }
 
-      // Assign Owner Role
-      if (newStore) {
-        await supabase.from('user_roles').insert({
-          user_id: user.id,
-          organization_id: organizationId,
-          store_id: newStore.id,
-          role: 'owner'
-        });
-        
-        // Create Sample Data for additional stores if requested
-        if (includeSampleData) {
-           await supabase.rpc('create_sample_data', {
-             p_store_id: newStore.id,
-             p_store_type: storeType
-           });
-        }
+      // Create Sample Data for additional stores if requested
+      if (newStoreId && includeSampleData) {
+          await supabase.rpc('create_sample_data', {
+            p_store_id: newStoreId,
+            p_store_type: storeType
+          });
       }
     }
   }
 
-  // 5. Create Invitations
+  // 5. Create Invitations & Send Emails
   if (invitations.length > 0 && firstStoreId) {
-    const invitesToInsert = invitations.map(invite => ({
-      store_id: firstStoreId,
-      email: invite.email,
-      role: invite.role,
-      invited_by: user.id
-    }));
+    const supabaseAdmin = createAdminClient();
+    
+    for (const invite of invitations) {
+      // 1. Record invitation in DB
+      const { error: inviteError } = await supabase
+        .from('store_invitations')
+        .insert({
+          store_id: firstStoreId,
+          email: invite.email,
+          role: invite.role,
+          invited_by: user.id
+        });
 
-    const { error: inviteError } = await supabase
-      .from('store_invitations')
-      .insert(invitesToInsert);
+      if (inviteError) {
+        console.error(`Failed to create invitation record for ${invite.email}:`, inviteError);
+        continue; 
+      }
 
-    if (inviteError) {
-      console.error('Failed to create invitations:', inviteError);
-      // Don't fail the whole process for invitation errors
+      // 2. Send actual invitation email via Supabase Auth
+      const { error: mailError } = await supabaseAdmin.auth.admin.inviteUserByEmail(invite.email, {
+        data: {
+          store_id: firstStoreId,
+          role: invite.role,
+          invited_by: user.id
+        },
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/dashboard`
+      });
+
+      if (mailError) {
+        console.error(`Failed to send invitation email to ${invite.email}:`, mailError);
+        // Note: DB record exists but email failed. Ideally we should update status to 'failed'
+      }
     }
   }
 

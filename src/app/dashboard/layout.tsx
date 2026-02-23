@@ -1,11 +1,35 @@
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/login");
+  }
+
+  // Check if user has a store
+  const { data: userRoles } = await supabase
+    .from("user_roles")
+    .select("store_id")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (!userRoles || userRoles.length === 0) {
+    redirect("/onboarding");
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="hidden md:flex md:w-64 md:flex-col">

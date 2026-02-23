@@ -13,6 +13,7 @@ import {
   LogOut,
   Store,
   User,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -45,6 +46,16 @@ const sidebarItems = [
     title: "매출 분석",
     href: "/dashboard/sales",
     icon: BarChart3,
+  },
+  {
+    title: "매장 관리",
+    href: "/dashboard/stores",
+    icon: Store,
+  },
+  {
+    title: "인력 관리",
+    href: "/dashboard/staff",
+    icon: Users,
   },
   {
     title: "마이페이지",
